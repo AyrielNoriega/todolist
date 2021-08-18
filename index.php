@@ -32,9 +32,15 @@
                 </div>
             </form>
 
-            <div id="mostrar-todo">
-                <form action="" method="get">
-                    <input type="checkbox" name="mostrar_todo" onChange="mostrarTodo(this)">Mostrar todo
+            <div id="mostrar_Todo_container">
+                <form action="" method="POST" id="mostrar_Todo">
+                    <input type="checkbox" name="mostrarTodo" onChange="MostrarTodo(this)"
+                    <?php if( isset($_POST['mostrarTodo']) ) {
+                        if ( $_POST['mostrarTodo'] == "on"  ) {
+                            echo " checked" ;
+                        }    
+                    }
+                    ?>>Mostrar todo
                 </form>
             </div>
         </div>
@@ -47,16 +53,18 @@
                 if (isset($_POST['pendiente'])) {
                     $pendiente = $_POST['pendiente'];
 
-                    $sql = "INSERT INTO todotable(pendiente, completo) VALUES('$pendiente', false)";
+                    if ( $pendiente !="" ) {
+                        $sql = "INSERT INTO todotable(pendiente, completo) VALUES('$pendiente', false)";
 
-                    if ($conexion->query($sql) == true) {
-                        // echo '<div>
-                        //             <form action="">
-                        //                 <input type="checkbox"> ' . $pendiente . '
-                        //             </form>
-                        //      </div>';
-                    }else {
-                        die ("Error al insertar datos: " . $conexion->error );
+                        if ($conexion->query($sql) == true) {
+                            // echo '<div>
+                            //             <form action="">
+                            //                 <input type="checkbox"> ' . $pendiente . '
+                            //             </form>
+                            //      </div>';
+                        }else {
+                            die ("Error al insertar datos: " . $conexion->error );
+                        }
                     }
 
                 }else if(isset($_POST['completo'])){
@@ -86,9 +94,23 @@
                         die ("Error al insertar datos: " . $conexion->error );
                     }
                 }
+                
+
+                //ORDENAR PENDIENTES EN TABLA
+                
+                if(isset( $_POST['mostrarTodo']) ){
+                    $ordenar = $_POST['mostrarTodo'];
+
+                    if ( $ordenar == "on" ) {
+
+                        $sql = "SELECT * FROM todotable ORDER BY completo ASC";
+                    }       
+                }else{
+                    $sql = "SELECT * FROM todotable WHERE completo = 0";
+                }
 
                 // obtencion de datos
-                $sql = "SELECT * FROM todotable WHERE completo = 0";
+                // $sql = "SELECT * FROM todotable WHERE completo = 0";
                 $resultado = $conexion->query( $sql );
 
                 ?>
@@ -117,7 +139,12 @@
                                         <input name="completo" value="<?php echo $row["id"] ?>" 
                                             id="<?php echo $row["id"] ?>" 
                                             type="checkbox" 
-                                            onChange="completarPendiente(this)"> <?php  echo $row["pendiente"] ?>
+                                            onChange="completarPendiente(this)"
+                                            <?php if ( $row["completo"] == 1 ) echo ' checked disabled class="text-muted" '; ?>
+                                        >  <span  <?php if ( $row["completo"] == 1 ) echo 'class="text-muted" '; ?>>
+                                                  <?php  echo $row["pendiente"] ?>
+                                            </span> 
+                                            
                                     </form>
                                 </td>
                                 <td>
@@ -158,7 +185,11 @@
             var id = 'form' + e.id
             var formulario = document.getElementById( id );
             formulario.submit();
+        }
 
+        function MostrarTodo( e ){
+            var formulario = document.getElementById( 'mostrar_Todo' );
+            formulario.submit();
         }
 
 </script>
